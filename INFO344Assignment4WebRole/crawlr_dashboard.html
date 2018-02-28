@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>webCrawlr | A basic website crawler.</title>
+
+    <link rel="stylesheet" href="css/dashboardstyle.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+
+    <script src="https://use.fontawesome.com/cc917ce52d.js"></script>
+    <script type="text/javascript" src="js/dashboardwork.js" defer></script>
+</head>
+<body>
+    <div class="container main">
+        <form id="urlInputForm">
+            <h1 class="header">webCrawlr</h1>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text search-label">robots.txt URL:</span>
+                </div>
+                <input type="text" class="form-control" id="urlCrawl" aria-label="URL" placeholder="absolute URL, e.g. &quot;http://www.cnn.com/robots.txt&quot;" value="http://www.cnn.com/robots.txt">
+                <div class="input-group-append">
+                    <button type="button" class="btn btn-outline-secondary" id="stopCrawlButton" onclick="stopCrawler()"><i class="fa fa-stop-circle" aria-hidden="true"></i></button>
+                </div>
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-outline-secondary" id="urlCrawlButton"><i class="fa fa-play-circle" aria-hidden="true"></i></button>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm report">
+                        <h2 class="section-header">Worker Role Status</h2>
+                        <hr />
+                        <ul>
+                            <li id="workerRoleStatus">please wait...</li>
+                            <li id="cpuUtilized"></li>
+                            <li id="ramUsed"></li>
+                        </ul>
+                    </div>
+                    <div class="col-sm report">
+                        <h2 class="section-header">Queue Information</h2>
+                        <hr />
+                        <ul>
+                            <li id="sizeOfXmlQueue">please wait...</li>
+                            <li id="sizeOfUrlQueue"></li>
+                            <li id="sizeOfIndex"></li>
+                            <li id="numberUrlsCrawled"></li>
+                        </ul>
+                        <p class="xml-warning">If there hasn't been an update in a while, the Crawler is likely parsing a <strong>long</strong> XML document.</p>
+                    </div>
+                    <div class="col-sm report">
+                        <h2 class="section-header">Last 10 URLs</h2>
+                        <hr />
+                        <ol id="lastTenUrls">
+                            <li>please wait...</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12 report">
+                        <h2 class="section-header">Search Crawled URLs</h2>
+                        <hr />
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text search-label">URL Title Search:</span>
+                            </div>
+                            <input type="text" class="form-control" id="urlSearch" aria-label="URL" placeholder="absolute URL, e.g. &quot;http://www.cnn.com/index.html&quot;">
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-outline-secondary" id="urlSearchButton"><i class="fa fa-search" aria-hidden="true"></i></button>
+                            </div>
+                        </div>
+                        <div id="urlSearchResults" class="container" style="display: none">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12 report">
+                        <h2 class="section-header">Errors Found</h2>
+                        <hr />
+                        <div id="errorsWrapper">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr />
+
+        </form>
+
+    </div>
+</body>
+</html>
