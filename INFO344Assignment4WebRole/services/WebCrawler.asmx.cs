@@ -4,6 +4,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Text.RegularExpressions;
 using System.Web.Script.Services;
 using System.Web.Services;
 
@@ -12,7 +13,7 @@ namespace INFO344Assignment4WebRole.services
     /// <summary>
     ///     ASMX Script Service for webCrawlr, a URL crawler tailored towards crawling cnn.com.
     /// </summary>
-    [WebService(Namespace = "http://tempuri.org/")]
+    [WebService(Namespace = "http://ieandrewcrawlr.cloudapp.net/")]
     [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
     [System.ComponentModel.ToolboxItem(false)]
     // To allow this Web Service to be called from script, using ASP.NET AJAX, uncomment the following line. 
@@ -65,6 +66,8 @@ namespace INFO344Assignment4WebRole.services
             try
             {
                 _storageManager.IssueCmd("CLEAR", _robotsTxtUrl);
+                _storageManager.ClearAll();
+
 
                 return ("Stopping and clearing crawl of " + _robotsTxtUrl);
             }
@@ -156,21 +159,31 @@ namespace INFO344Assignment4WebRole.services
         [WebMethod]
         public List<int> GetNumCrawledUrls()
         {
-            CloudTable urlTable = _storageManager.UrlTable;
-
-            TableQuery<UrlTableCount> urlNumberQuery = new TableQuery<UrlTableCount>()
-                .Where(
-                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "UrlTableCount")
-                );
-
-            List<int> result = new List<int>();
-            foreach (var statusItem in urlTable.ExecuteQuery(urlNumberQuery))
+            try
             {
-                result.Add(statusItem.NumUrlsCrawled);
-                result.Add(statusItem.NumUrlsInTable);
+                CloudTable urlTable = _storageManager.UrlTable;
+
+                TableQuery<UrlTableCount> urlNumberQuery = new TableQuery<UrlTableCount>()
+                    .Where(
+                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "UrlTableCount")
+                    );
+
+                List<int> result = new List<int>();
+                foreach (var statusItem in urlTable.ExecuteQuery(urlNumberQuery))
+                {
+                    result.Add(statusItem.NumUrlsCrawled);
+                    result.Add(statusItem.NumUrlsInTable);
+                }
+
+                return result;
+            }
+            catch (Exception) {
+                List<int> Catch = new List<int>();
+                Catch.Add(0);
+                Catch.Add(0);
+                return Catch;
             }
 
-            return result;
         }
 
         /// <summary>
@@ -251,22 +264,46 @@ namespace INFO344Assignment4WebRole.services
         /// </returns>
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         [WebMethod]
-        public List<string> SearchForUrlTitle(string url)
+        public List<string> SearchForPageTitle(string userSearch)
         {
             CloudTable urlTable = _storageManager.UrlTable;
 
-            TableQuery<IndexedUrl> urlTitleQuery = new TableQuery<IndexedUrl>()
-                .Where(
-                    TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, url.GetHashCode().ToString())
-                );
+            List<TableQuery<IndexedUrl>> queriesToExecute = new List<TableQuery<IndexedUrl>>();
+            List<IndexedUrl> results = new List<IndexedUrl>();
+            List<string> ret = new List<string>();
 
-            List<string> result = new List<string>();
-            foreach (var statusItem in urlTable.ExecuteQuery(urlTitleQuery))
+            string[] splitSearch = userSearch.Split(' ');
+            foreach (string s in splitSearch)
             {
-                result.Add(statusItem.PageTitle);
+                string word = s.ToLower();
+                word = Regex.Replace(word, "[^a-zA-Z0-9]", "");
+
+                if (word != "")
+                {
+                    TableQuery<IndexedUrl> urlTitleQuery = new TableQuery<IndexedUrl>()
+                    .Where(
+                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, word)
+                    );
+
+                    queriesToExecute.Add(urlTitleQuery);
+                }
             }
 
-            return result;
+            foreach (var q in queriesToExecute)
+            {
+                var executedQuery = urlTable.ExecuteQuery(q);
+                foreach (IndexedUrl url in executedQuery)
+                {
+                    results.Add(url);
+                }
+            }
+
+            foreach (var x in results)
+            {
+                ret.Add(x.PageTitle);
+            }
+
+            return ret;
         }
 
         private void InitializeCrawlrComponents()

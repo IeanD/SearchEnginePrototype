@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="utf-8">
+
+    <title>Wikipedia Title Search</title>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="A searchable database of wikipedia page titles.">
+    <meta name="author" content="Iean Drew">
+
+    <link rel="stylesheet" href="css/searchstyle.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+
+    <script type="text/javascript" src="js/searchwork.js" defer></script>
+    <script src="https://use.fontawesome.com/cc917ce52d.js"></script>
+    <!-- Script for the off-chance you're using old Internet Explorer. -->
+    <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+    <div class="container search-container">
+        <h1 class="header">webCrawlr</h1>
+        <form id="searchForm">
+            <div class="input-group mb-3" id="searchDiv">
+                <div class="input-group-prepend">
+                    <span class="input-group-text search-label">Page title:</span>
+                </div>
+                <input type="text" class="form-control" id="titleSearch" aria-label="" placeholder="e.g. &quot;beethoven&quot;">
+                <div class="input-group-append">
+                    <button type="submit"
+                            class="btn btn-outline-secondary"
+                            id="titleSearchBtn">
+                        <i class="fa fa-search" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="titleSuggestions"></div>
+        </form>
+    </div>
+
+    <div id='newScripts' style='display:none'></div>
+</body>
+
+</html>

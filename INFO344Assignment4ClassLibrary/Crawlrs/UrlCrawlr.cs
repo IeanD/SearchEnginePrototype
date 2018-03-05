@@ -7,6 +7,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace INFO344Assignment4ClassLibrary.Crawlrs
 {
@@ -49,74 +50,84 @@ namespace INFO344Assignment4ClassLibrary.Crawlrs
                 //        }
                 //    }
                 //}
-                try
+
+                var web = new HtmlWeb();
+                var currDoc = web.Load(url);
+                var urlNodes = currDoc.DocumentNode.Descendants("a")
+                    .ToList();
+                var urlPageTitle = currDoc.DocumentNode.Descendants("title")
+                    .First()
+                    .InnerText;
+                var urlLastModNode = currDoc.DocumentNode.Descendants("meta")
+                    .Select(y => y)
+                    .Where(y => y.Attributes.Contains("name"))
+                    .Where(y => y.Attributes["name"].Value == "pubdate")
+                    .ToList();
+
+                DateTime? urlLastMod = null;
+                if (urlLastModNode.Count > 0)
                 {
-                    var web = new HtmlWeb();
-                    var currDoc = web.Load(url);
-                    var urlNodes = currDoc.DocumentNode.Descendants("a")
-                        .ToList();
-                    var urlPageTitle = currDoc.DocumentNode.Descendants("title")
-                        .First()
-                        .InnerText;
-                    var urlLastModNode = currDoc.DocumentNode.Descendants("meta")
-                        .Select(y => y)
-                        .Where(y => y.Attributes.Contains("name"))
-                        .Where(y => y.Attributes["name"].Value == "pubdate")
-                        .ToList();
+                    urlLastMod = DateTime.Parse(
+                        urlLastModNode.First().Attributes["content"].Value);
+                }
 
-                    DateTime? urlLastMod = null;
-                    if (urlLastModNode.Count > 0)
+                List<string> urlsToQueue = new List<string>();
+
+                foreach (var urlNode in urlNodes)
+                {
+                    if (urlNode.Attributes.Contains("href"))
                     {
-                        urlLastMod = DateTime.Parse(
-                            urlLastModNode.First().Attributes["content"].Value);
+                        urlsToQueue.Add(urlNode.Attributes["href"].Value);
                     }
+                }
 
-                    List<string> urlsToQueue = new List<string>();
+                foreach (string newUrl in urlsToQueue)
+                {
+                    ChkAndAddUrl(newUrl, url, urlLastMod, ref data, ref storage);
+                }
 
-                    foreach (var urlNode in urlNodes)
+                if (!data.AddedUrls.Contains(url))
+                {
+                    data.AddedUrls.Add(url);
+                }
+                data.NumUrlsCrawled++;
+                string[] splitPageTitle = urlPageTitle.Split(' ');
+                foreach (string s in splitPageTitle)
+                {
+                    string plainText = s.ToLower();
+                    plainText = Regex.Replace(plainText, "[^a-zA-Z0-9]", "");
+                    if (plainText != "")
                     {
-                        if (urlNode.Attributes.Contains("href"))
-                        {
-                            urlsToQueue.Add(urlNode.Attributes["href"].Value);
-                        }
-                    }
-
-                    foreach (string newUrl in urlsToQueue)
-                    {
-                        ChkAndAddUrl(newUrl, url, urlLastMod, ref data, ref storage);
-                    }
-
-                    if (!data.AddedUrls.Contains(url))
-                    {
-                        data.AddedUrls.Add(url);
+                        IndexedUrl wordToUrl = new IndexedUrl(plainText, urlPageTitle, (urlLastMod != null ? urlLastMod.ToString(): "NULL"), url);
+                        TableOperation insertWordToUrl = TableOperation.InsertOrReplace(wordToUrl);
+                        storage.UrlTable.Execute(insertWordToUrl);
                         data.NumUrlsIndexed++;
                     }
-                    data.NumUrlsCrawled++;
-                    IndexedUrl finishedUrl = new IndexedUrl(urlPageTitle, (urlLastMod != null ? urlLastMod.ToString() : "NULL"), url);
-                    UrlTableCount newCount = new UrlTableCount(data.NumUrlsCrawled, data.NumUrlsIndexed);
-                    TableOperation insertUrl = TableOperation.InsertOrReplace(finishedUrl);
-                    TableOperation insertCount = TableOperation.InsertOrReplace(newCount);
-                    storage.UrlTable.Execute(insertUrl);
-                    storage.UrlTable.Execute(insertCount);
-                    if (data.LastTenUrls.Count == 10)
-                    {
-                        data.LastTenUrls.Dequeue();
-                    }
-                    data.LastTenUrls.Enqueue(url);
                 }
-                catch (Exception ex)
+                UrlTableCount newCount = new UrlTableCount(data.NumUrlsCrawled, data.NumUrlsIndexed);
+                TableOperation insertCount = TableOperation.InsertOrReplace(newCount);
+                storage.UrlTable.Execute(insertCount);
+                if (data.LastTenUrls.Count == 10)
                 {
-                    ErrorEntity errorUrl = new ErrorEntity(url, ex.ToString());
-                    TableOperation insertErrorUrl = TableOperation.InsertOrReplace(errorUrl);
-                    storage.ErrorTable.Execute(insertErrorUrl);
+                    data.LastTenUrls.Dequeue();
                 }
-
+                data.LastTenUrls.Enqueue(url);
             }
         }
 
         private static bool IsInProperDomain(string currHref)
         {
-            if (currHref.Contains("cnn.com") || currHref.Contains("bleacherreport.com/nba"))
+            if (currHref.EndsWith(".jpg") ||
+                currHref.EndsWith(".png") ||
+                currHref.EndsWith(".pdf") ||
+                currHref.Contains("cdn.cnn.com"))
+            {
+
+                return false;
+            }
+            if (currHref.Contains("cnn.com") || 
+                currHref.Contains("bleacherreport.com/nba") ||
+                currHref.Contains("bleacherreport.com/articles"))
             {
 
                 return true;
@@ -128,6 +139,7 @@ namespace INFO344Assignment4ClassLibrary.Crawlrs
             }
             else // TODO: also bleacher report
             {
+
                 return false;
             }
         }
@@ -165,7 +177,7 @@ namespace INFO344Assignment4ClassLibrary.Crawlrs
             }
             if (urlLastMod != null)
             {
-                validDateIfExists = (urlLastMod >= DateTime.Now - TimeSpan.FromDays(62));
+                validDateIfExists = urlLastMod >= new DateTime(2018, 1, 1);
             }
             if (IsInProperDomain(currHref)
                 && !data.QueuedUrls.Contains(currHref)

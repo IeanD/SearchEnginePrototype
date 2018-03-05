@@ -15,6 +15,7 @@ namespace INFO344Assignment4ClassLibrary.Helpers
         public HashSet<string> QueuedXmls { get; private set; }
         public HashSet<string> QueuedUrls { get; private set; }
         public HashSet<string> AddedUrls { get; private set; }
+        public Queue<string> XmlQueue { get; set; }
         public Queue<string> LastTenUrls { get; private set; }
         public int NumXmlsQueued { get; set; }
         public int NumUrlsQueued { get; set; }
@@ -27,6 +28,7 @@ namespace INFO344Assignment4ClassLibrary.Helpers
             this.QueuedXmls = new HashSet<string>();
             this.QueuedUrls = new HashSet<string>();
             this.AddedUrls = new HashSet<string>();
+            this.XmlQueue = new Queue<string>();
             this.LastTenUrls = new Queue<string>(10);
             this.NumXmlsQueued = 0;
             this.NumUrlsQueued = 0;
@@ -36,6 +38,14 @@ namespace INFO344Assignment4ClassLibrary.Helpers
 
         public bool ChkIfUriAllowed(string uri)
         {
+            if (uri.EndsWith(".jpg") ||
+                uri.EndsWith(".png") ||
+                uri.EndsWith(".pdf") ||
+                uri.Contains("cdn.cnn.com"))
+            {
+                return false;
+            }
+
             foreach (string s in DisallowedStrings)
             {
                 if (uri.Contains(s))

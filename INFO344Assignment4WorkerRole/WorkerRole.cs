@@ -1,3 +1,4 @@
+using System;
 using System.Configuration;
 using System.Diagnostics;
 using System.Net;
@@ -6,8 +7,10 @@ using System.Threading.Tasks;
 using INFO344Assignment4ClassLibrary.Crawlrs;
 using INFO344Assignment4ClassLibrary.Helpers;
 using INFO344Assignment4ClassLibrary.Storage;
+using INFO344Assignment4ClassLibrary.Storage.Entities;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage.Queue;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace INFO344Assignment4WorkerRole
 {
@@ -64,8 +67,7 @@ namespace INFO344Assignment4WorkerRole
 
         private async Task RunAsync(CancellationToken cancellationToken)
         {
-            // Set up queues, tables, data helper, status helper
-            InitializeCrawlrComponents();
+            _storageManager = new CrawlrStorageManager(ConfigurationManager.AppSettings["StorageConnectionString"]);
 
             // Get the current cmd from the cmd table;
             // Re-execute cmd query periodically until current cmd exists
@@ -76,8 +78,10 @@ namespace INFO344Assignment4WorkerRole
 
             // If start cmd given, initialize download of robots.txt
             // and populate the xmlQueue and _disallowed list
-            if (_storageManager.GetCurrentCmd() == "START")
+            if (_storageManager.GetCurrentCmd() == "START" && _crawlrData == null)
             {
+                // Set up queues, tables, data helper, status helper
+                InitializeCrawlrComponents();
                 Startup();
             }
 
@@ -90,58 +94,86 @@ namespace INFO344Assignment4WorkerRole
                 if (_storageManager.GetCurrentCmd() == "START")
                 {
                     // Process all XMLs (sitemaps) found
-                    while (_crawlrData.NumXmlsQueued > 0 && _storageManager.GetCurrentCmd() == "START")
-                    {
-                        CloudQueueMessage nextXmlMsg = _storageManager.XmlQueue.GetMessage();
-                        string nextXml = nextXmlMsg.AsString;
+                    //string nextXml = "";
+                    //try
+                    //{
+                    //    while (_crawlrData.NumXmlsQueued > 0 && _storageManager.GetCurrentCmd() == "START")
+                    //    {
+                    //        //CloudQueueMessage nextXmlMsg = _storageManager.XmlQueue.GetMessage();
+                    //        nextXml = _crawlrData.XmlQueue.Dequeue();
+                    //        _crawlrData.NumXmlsQueued--;
 
-                        XmlCrawlr.CrawlXml(ref _crawlrData, ref _storageManager, nextXml);
+                    //        XmlCrawlr.CrawlXml(ref _crawlrData, ref _storageManager, nextXml);
 
-                        _storageManager.XmlQueue.DeleteMessage(nextXmlMsg);
-                        _crawlrData.NumXmlsQueued--;
+                    //        //_storageManager.XmlQueue.DeleteMessage(nextXmlMsg);
 
-                        // Update worker role status
-                        _statusManager.UpdateCrawlrStatus(
-                            "Loading",
-                            _crawlrData,
-                            _storageManager
-                        );
-                        _statusManager.UpdateQueueSize(_storageManager, _crawlrData.NumXmlsQueued, _crawlrData.NumUrlsQueued);
+                    //        // Update worker role status
+                    //        _statusManager.UpdateCrawlrStatus(
+                    //            "Loading",
+                    //            _crawlrData,
+                    //            _storageManager
+                    //        );
+                    //        _statusManager.UpdateQueueSize(_storageManager, _crawlrData.NumXmlsQueued, _crawlrData.NumUrlsQueued);
 
-                        Thread.Sleep(50);
-                    }
+                    //        Thread.Sleep(50);
+                    //    }
+                    //}
+                    //catch (Exception ex)
+                    //{
+                    //    try
+                    //    {
+                    //        ErrorEntity errorUrl = new ErrorEntity(nextXml, ex.ToString());
+                    //        TableOperation insertErrorUrl = TableOperation.InsertOrReplace(errorUrl);
+                    //        _storageManager.ErrorTable.Execute(insertErrorUrl);
+                    //    }
+                    //    catch (Exception) { }
+                    //}
 
                     // Process all URLs in queue
-                    while (_crawlrData.NumUrlsQueued > 0 && _storageManager.GetCurrentCmd() == "START")
+                    string nextUrl = "";
+                    try
                     {
-                        CloudQueueMessage nextUrlMsg = _storageManager.UrlQueue.GetMessage();
-                        string nextUrl = nextUrlMsg.AsString;
+                        while (_storageManager.GetCurrentCmd() == "START")
+                        {
+                            CloudQueueMessage nextUrlMsg = _storageManager.UrlQueue.GetMessage();
+                            nextUrl = nextUrlMsg.AsString;
 
-                        UrlCrawlr.CrawlUrl(ref _crawlrData, ref _storageManager, nextUrl);
+                            UrlCrawlr.CrawlUrl(ref _crawlrData, ref _storageManager, nextUrl);
 
-                        _storageManager.UrlQueue.DeleteMessage(nextUrlMsg);
-                        _crawlrData.NumUrlsQueued--;
+                            _storageManager.UrlQueue.DeleteMessage(nextUrlMsg);
+                            _crawlrData.NumUrlsQueued--;
 
-                        // Update worker role status
-                        _statusManager.UpdateCrawlrStatus(
-                            "Crawling",
-                            _crawlrData,
-                            _storageManager
-                        );
-                        _statusManager.UpdateQueueSize(_storageManager, _crawlrData.NumXmlsQueued, _crawlrData.NumUrlsQueued);
+                            // Update worker role status
+                            _statusManager.UpdateCrawlrStatus(
+                                "Crawling",
+                                _crawlrData,
+                                _storageManager
+                            );
+                            _statusManager.UpdateQueueSize(_storageManager, _crawlrData.NumXmlsQueued, _crawlrData.NumUrlsQueued);
 
-                        Thread.Sleep(50);
+                            Thread.Sleep(50);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        try
+                        {
+                            ErrorEntity errorUrl = new ErrorEntity(nextUrl, ex.ToString());
+                            TableOperation insertErrorUrl = TableOperation.InsertOrReplace(errorUrl);
+                            _storageManager.ErrorTable.Execute(insertErrorUrl);
+                        }
+                        catch (Exception) { }
                     }
                 }
                 else if (_storageManager.GetCurrentCmd() == "CLEAR")
                 {
-                    // If the "CLEAR" command is found, clear all queues and tables.
-                    _storageManager.ClearAll();
+                    // If the "CLEAR" command is found, update status.
                     _statusManager.UpdateCrawlrStatus(
                         "CLEAR",
                         _crawlrData,
                         _storageManager
                     );
+                    _statusManager.UpdateQueueSize(_storageManager, 0, 0);
                     // Give Azure time to delete tables.
                     Thread.Sleep(20000);
 
@@ -179,12 +211,17 @@ namespace INFO344Assignment4WorkerRole
         // Perform the initial robots.txt crawl.
         private void Startup()
         {
+            // Update status
             _statusManager.UpdateCrawlrStatus(
                 "Initializing",
                 _crawlrData,
                 _storageManager
             );
+
+            // Crawl robots.txt
             RobotsTxtCrawlr.CrawlRobotsTxt(ref _crawlrData, ref _storageManager);
+
+            // Initial update of queue size
             _statusManager.UpdateQueueSize(_storageManager, _crawlrData.NumXmlsQueued, _crawlrData.NumUrlsQueued);
         }
 

@@ -244,9 +244,9 @@ function refreshAll(e) {
                 NumIndexLi.removeChild(NumIndexLi.firstChild);
             }
             let numUrlsIndexed = document.createElement('span');
-            numUrlsIndexed.innerHTML = "Number of URLs indexed: " + json.d[1];
+            numUrlsIndexed.innerHTML = "Number of URLs indexed: " + (json.d[1] ? json.d[1] : '0');
             NumIndexLi.appendChild(numUrlsIndexed);
-            console.log(json);
+            //console.log(json);
         }
         );
 

@@ -59,6 +59,8 @@
     <Compile Include="Storage\Entities\IndexedUrl.cs" />
     <Compile Include="Storage\Entities\UrlTableCount.cs" />
     <Compile Include="Storage\Entities\WorkerRoleStatus.cs" />
+    <Compile Include="Trie\Trie.cs" />
+    <Compile Include="Trie\TrieNode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

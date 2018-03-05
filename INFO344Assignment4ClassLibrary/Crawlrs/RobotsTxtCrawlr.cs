@@ -1,6 +1,5 @@
 ﻿using INFO344Assignment4ClassLibrary.Helpers;
 using INFO344Assignment4ClassLibrary.Storage;
-using Microsoft.WindowsAzure.Storage.Queue;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -52,7 +51,7 @@ namespace INFO344Assignment4ClassLibrary.Crawlrs
                     bool pass = false;
                     if (url.Contains("bleacherreport"))
                     {
-                        if (splitLine[1].Contains("nba"))
+                        if (splitLine[1].Contains("/nba") || splitLine[1].Contains("/articles"))
                         {
                             pass = true;
                         }
@@ -65,8 +64,9 @@ namespace INFO344Assignment4ClassLibrary.Crawlrs
                     {
                         sitemaps.Add(splitLine[1]);
                         data.QueuedXmls.Add(splitLine[1]);
-                        CloudQueueMessage msg = new CloudQueueMessage(splitLine[1]);
-                        storage.XmlQueue.AddMessage(msg);
+                        //CloudQueueMessage msg = new CloudQueueMessage(splitLine[1]);
+                        //storage.XmlQueue.AddMessage(msg);
+                        data.XmlQueue.Enqueue(splitLine[1]);
                         data.NumXmlsQueued++;
 
                     }

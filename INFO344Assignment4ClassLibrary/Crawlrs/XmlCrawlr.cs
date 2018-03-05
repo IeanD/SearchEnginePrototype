@@ -35,98 +35,89 @@ namespace INFO344Assignment4ClassLibrary.Crawlrs
         {
             if (data.ChkIfUriAllowed(xml))
             {
-                try
+                if (xml.EndsWith(".xml"))
                 {
-                    if (xml.EndsWith(".xml"))
+                    XElement sitemap = XElement.Load(xml);
+                    string sitemapType = sitemap.Name.LocalName;
+                    string nameSpace = sitemap.GetDefaultNamespace().ToString();
+                    string dateNameSpace = null;
+                    XName dateParent = null;
+                    XName date = null;
+                    if (sitemap.ToString().Contains(@"xmlns:news"))
                     {
-                        XElement sitemap = XElement.Load(xml);
-                        string sitemapType = sitemap.Name.LocalName;
-                        string nameSpace = sitemap.GetDefaultNamespace().ToString();
-                        string dateNameSpace = null;
-                        XName dateParent = null;
-                        XName date = null;
-                        if (sitemap.ToString().Contains(@"xmlns:news"))
+                        dateNameSpace = sitemap.GetNamespaceOfPrefix("news").ToString();
+                        dateParent = XName.Get("news", dateNameSpace);
+                        date = XName.Get("publication_date", dateNameSpace);
+                    }
+                    else if (sitemap.ToString().Contains(@"xmlns:video"))
+                    {
+                        dateNameSpace = sitemap.GetNamespaceOfPrefix("video").ToString();
+                        dateParent = XName.Get("video", dateNameSpace);
+                        date = XName.Get("publication_date", dateNameSpace);
+                    }
+                    XName loc = XName.Get("loc", nameSpace);
+                    XName lastMod = XName.Get("lastmod", nameSpace);
+                    XName elementSelector;
+                    if (sitemapType == "sitemapindex")
+                    {
+                        elementSelector = XName.Get("sitemap", nameSpace);
+                    }
+                    else
+                    {
+                        elementSelector = XName.Get("url", nameSpace);
+                    }
+
+                    List<string> xmlsToQueue = new List<string>();
+                    List<string> urlsToQueue = new List<string>();
+
+                    foreach (var element in sitemap.Elements(elementSelector))
+                    {
+                        bool validDateIfExists = true;
+                        var currLocElement = element.Element(loc);
+                        string currLocValue = currLocElement.Value;
+                        var currLastModElement = element.Element(lastMod);
+                        if (currLastModElement == null)
                         {
-                            dateNameSpace = sitemap.GetNamespaceOfPrefix("news").ToString();
-                            dateParent = XName.Get("news", dateNameSpace);
-                            date = XName.Get("publication_date", dateNameSpace);
+                            currLastModElement = element.Element(dateParent);
+                            currLastModElement = (currLastModElement == null ? null : currLastModElement.Element(date));
                         }
-                        else if (sitemap.ToString().Contains(@"xmlns:video"))
+                        if (currLastModElement != null)
                         {
-                            dateNameSpace = sitemap.GetNamespaceOfPrefix("video").ToString();
-                            dateParent = XName.Get("video", dateNameSpace);
-                            date = XName.Get("publication_date", dateNameSpace);
+                            validDateIfExists = DateTime.Parse(currLastModElement.Value) >= new DateTime(2018, 1, 1);
                         }
-                        XName loc = XName.Get("loc", nameSpace);
-                        XName lastMod = XName.Get("lastmod", nameSpace);
-                        XName elementSelector;
-                        if (sitemapType == "sitemapindex")
+                        if (currLocValue.Contains(".xml"))
                         {
-                            elementSelector = XName.Get("sitemap", nameSpace);
+                            if (!data.QueuedXmls.Contains(currLocValue)
+                                && validDateIfExists)
+                            {
+                                xmlsToQueue.Add(currLocValue);
+                            }
                         }
                         else
                         {
-                            elementSelector = XName.Get("url", nameSpace);
-                        }
-
-                        List<string> xmlsToQueue = new List<string>();
-                        List<string> urlsToQueue = new List<string>();
-
-                        foreach (var element in sitemap.Elements(elementSelector))
-                        {
-                            bool validDateIfExists = true;
-                            var currLocElement = element.Element(loc);
-                            string currLocValue = currLocElement.Value;
-                            var currLastModElement = element.Element(lastMod);
-                            if (currLastModElement == null)
+                            if (!data.QueuedUrls.Contains(currLocValue)
+                                && validDateIfExists)
                             {
-                                currLastModElement = element.Element(dateParent);
-                                currLastModElement = (currLastModElement == null ? null : currLastModElement.Element(date));
+                                urlsToQueue.Add(currLocValue);
                             }
-                            if (currLastModElement != null)
-                            {
-                                validDateIfExists = DateTime.Parse(currLastModElement.Value) >= DateTime.Now - TimeSpan.FromDays(62);
-                            }
-                            if (currLocValue.Contains(".xml"))
-                            {
-                                if (!data.QueuedXmls.Contains(currLocValue)
-                                    && validDateIfExists)
-                                {
-                                    xmlsToQueue.Add(currLocValue);
-                                }
-                            }
-                            else
-                            {
-                                if (!data.QueuedUrls.Contains(currLocValue)
-                                    && validDateIfExists)
-                                {
-                                    urlsToQueue.Add(currLocValue);
-                                }
-                            }
-                        }
-
-                        foreach (string newXml in xmlsToQueue)
-                        {
-                            CloudQueueMessage msg = new CloudQueueMessage(newXml);
-                            storage.XmlQueue.AddMessage(msg);
-                            data.QueuedXmls.Add(newXml);
-                            data.NumXmlsQueued++;
-                        }
-
-                        foreach (string newUrl in urlsToQueue)
-                        {
-                            UrlCrawlr.ChkAndAddUrl(newUrl, xml, null, ref data, ref storage);
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    ErrorEntity errorUrl = new ErrorEntity(xml, ex.ToString());
-                    TableOperation insertErrorUrl = TableOperation.InsertOrReplace(errorUrl);
-                    storage.ErrorTable.Execute(insertErrorUrl);
+
+                    foreach (string newXml in xmlsToQueue)
+                    {
+                        //CloudQueueMessage msg = new CloudQueueMessage(newXml);
+                        //storage.XmlQueue.AddMessage(msg);
+                        data.QueuedXmls.Add(newXml);
+                        data.NumXmlsQueued++;
+                        data.XmlQueue.Enqueue(newXml);
+                    }
+
+                    foreach (string newUrl in urlsToQueue)
+                    {
+                        UrlCrawlr.ChkAndAddUrl(newUrl, xml, null, ref data, ref storage);
+                    }
                 }
             }
         }
     }
-
 }
