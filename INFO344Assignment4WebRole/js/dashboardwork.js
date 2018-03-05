@@ -13,7 +13,7 @@ searchBtn.addEventListener("click", function (e) {
     searchForTitleByUrl(e);
 });
 
-const interval = setInterval(refreshAll, 6000);
+const interval = setInterval(refreshAll, 4000);
 
 function startCrawl(e) {
     e.preventDefault();
@@ -63,12 +63,12 @@ function searchForTitleByUrl(e) {
         e.preventDefault(e);
     }
 
-    const searchUrl = "services/WebCrawler.asmx/SearchForUrlTitle"
+    const searchUrl = "services/WebCrawler.asmx/SearchForPageTitle"
 
     let input = document.getElementById("urlSearch").value;
 
     let data = JSON.stringify({
-        url: input
+        userSearch: input
     });
     let init = {
         method: 'POST',
@@ -85,17 +85,34 @@ function searchForTitleByUrl(e) {
             let outputDiv = document.getElementById("urlSearchResults");
             outputDiv.style = "display: block";
 
-            let searchResult = document.createElement('p');
             while (outputDiv.firstChild) {
                 outputDiv.removeChild(outputDiv.firstChild);
             }
             if (json.d.length > 0) {
-                searchResult.innerHTML = "<strong>Found page title: </strong>" + json.d[0];
+                //searchResult.innerHTML = "<strong>Found page title: </strong>" + json.d[0];
+                for (var i = 0; i < json.d.length; i++) {
+                    let currResultLine = document.createElement('p');
+                    let currResultLink = document.createElement('a');
+                    let splitResult = json.d[i].split('|||');
+                    currResultLink.setAttribute('href', splitResult[2]);
+                    currResultLink.innerHTML = splitResult[0] + '     ';
+                    currResultLine.appendChild(currResultLink);
+                    if (splitResult[1] != "NULL") {
+                        let currResultDate = document.createElement('span');
+                        currResultDate.setAttribute('class', 'url-date');
+                        currResultDate.innerHTML = splitResult[1];
+                        currResultLine.appendChild(currResultDate);
+                    }
+                    //currResult.innerHTML = list[i];
+                    outputDiv.appendChild(document.createElement('hr'));
+                    outputDiv.appendChild(currResultLine);
+                }
             }
             else {
+                let searchResult = document.createElement('p');
                 searchResult.innerHTML = "<strong>No results found.<strong>";
+                outputDiv.appendChild(searchResult);
             }
-            outputDiv.appendChild(searchResult);
         }
         );
 }
@@ -244,7 +261,7 @@ function refreshAll(e) {
                 NumIndexLi.removeChild(NumIndexLi.firstChild);
             }
             let numUrlsIndexed = document.createElement('span');
-            numUrlsIndexed.innerHTML = "Number of URLs indexed: " + (json.d[1] ? json.d[1] : '0');
+            numUrlsIndexed.innerHTML = "Number of Words Indexed: " + (json.d[1] ? json.d[1] : '0');
             NumIndexLi.appendChild(numUrlsIndexed);
             //console.log(json);
         }
@@ -307,5 +324,38 @@ function refreshAll(e) {
                 errorDiv.appendChild(table);
             }
         }
-        );
+    );
+
+    const trieUpdateUrl = "services/GetQuerySuggestions.asmx/GetTrieStats";
+
+    let trieUpdateInit = {
+        method: 'GET',
+        headers: new Headers({
+            'content-type': 'application/json'
+        })
+    };
+    fetch(trieUpdateUrl, trieUpdateInit)
+        .then(function (response) {
+            return response.json();
+        }).then(function (json) {
+            console.log(json);
+            updateTrieStatus(json);
+        });
+}
+
+function updateTrieStatus(json) {
+    let trieStatusUl = document.getElementById('trieStatus');
+    if (json.d.length > 0) {
+        while (trieStatusUl.firstChild) {
+            trieStatusUl.removeChild(trieStatusUl.firstChild);
+        }
+
+        let numAddedLi = document.createElement('li');
+        numAddedLi.innerHTML = 'Number of in trie: ' + json.d[0];
+        let lastTitleLi = document.createElement('li');
+        lastTitleLi.innerHTML = 'Last title added: ' + json.d[1];
+
+        trieStatusUl.appendChild(numAddedLi);
+        trieStatusUl.appendChild(lastTitleLi);
+    }
 }

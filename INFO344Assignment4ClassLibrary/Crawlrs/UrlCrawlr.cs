@@ -83,7 +83,7 @@ namespace INFO344Assignment4ClassLibrary.Crawlrs
 
                 foreach (string newUrl in urlsToQueue)
                 {
-                    ChkAndAddUrl(newUrl, url, urlLastMod, ref data, ref storage);
+                    ChkAndAddUrl(newUrl, url, null, ref data, ref storage);
                 }
 
                 if (!data.AddedUrls.Contains(url))

@@ -69,6 +69,10 @@
     max-width: 70px;
 }
 
+#nbaResultsWrapper {
+    padding-top: 15px;
+}
+
 #urlResults {
     padding-left: 15px;
 }
@@ -85,4 +89,8 @@
     margin-left: 94px;
     margin-right: 40px;
     display: none;
+}
+
+#titleSuggestions > div > a {
+    padding: 10px 10px;
 }

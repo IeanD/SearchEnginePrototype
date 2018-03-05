@@ -106,19 +106,24 @@ namespace INFO344Assignment4WebRole.services
 
             while ((line = input.ReadLine()) != null)
             {
-                if (perf.NextValue() <= 50 || line.IndexOf('B') == 0)
+                if (perf.NextValue() <= 50
+                    //|| line.IndexOf('B') == 0
+                    )
                 {
                     break;
                 }
 
                 _titlesTrie.AddWord(line.ToLower());
                 counter++;
+                _numTitlesAddedToTrie = counter;
+                if (line != null && line != "" && line != " ")
+                {
+                    _lastTitleAddedToTrie = line;
+                }
             }
-            _numTitlesAddedToTrie = counter;
-            _lastTitleAddedToTrie = line;
             string output = String.Format("{0} titles were added. The last title added was {1}. The amount of free RAM is {2}MBytes.",
                                 counter,
-                                line,
+                                _lastTitleAddedToTrie,
                                 perf.NextValue());
 
             _trieIsBuilding = false;
@@ -154,6 +159,26 @@ namespace INFO344Assignment4WebRole.services
             {
                 return new List<string>();
             }
+        }
+
+        /// <summary>
+        ///     Gets the number of titles added to the trie, and the last title added.
+        /// </summary>
+        /// <returns>
+        ///     A List<string> where the first value is the number of titles added, and the
+        ///     second is the last title added.
+        /// </returns>
+        [WebMethod]
+        [ScriptMethod(UseHttpGet = true, ResponseFormat = ResponseFormat.Json)]
+        public List<String> GetTrieStats()
+        {
+            List<string> results = new List<string>
+            {
+                _numTitlesAddedToTrie.ToString(),
+                _lastTitleAddedToTrie
+            };
+
+            return results;
         }
     }
 }
