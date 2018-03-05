@@ -55,7 +55,7 @@ namespace INFO344Assignment4ClassLibrary.Storage
                 .GetTable();
 
             this.UrlTable = new AzureTable(
-                _connectionString, "devcrawlrurltable")
+                _connectionString, "testcrawlrurltable")
                 .GetTable();
 
             this.StatusTable = new AzureTable(

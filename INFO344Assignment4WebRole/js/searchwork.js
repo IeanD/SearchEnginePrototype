@@ -88,13 +88,13 @@ function nbaSearch(jsonString) {
         nbaResultsDiv.setAttribute('style', 'display:none');
         console.log('No match found on EC2.');
         // Proceed to search crawlr table.
-        searchUrlIndex(document.getElementById('titleSearch').value);
     }
     else {
         // Display NBA Stats results.
-        urlResultsDiv.setAttribute('style', 'display:none');
+        //urlResultsDiv.setAttribute('style', 'display:none');
         displayNbaResults(json);
     }
+    searchUrlIndex(document.getElementById('titleSearch').value);
 }
 
 function displayNbaResults(json) {
@@ -216,7 +216,7 @@ function showUrlResults(list) {
         for (var i = 0; i < list.length; i++) {
             let currResultLine = document.createElement('p');
             let currResultLink = document.createElement('a');
-            let splitResult = list[i].split('|');
+            let splitResult = list[i].split('|||');
             currResultLink.setAttribute('href', splitResult[2]);
             currResultLink.innerHTML = splitResult[0];
             currResultLine.appendChild(currResultLink);
@@ -227,6 +227,7 @@ function showUrlResults(list) {
                 currResultLine.appendChild(currResultDate);
             }
             //currResult.innerHTML = list[i];
+            urlResultsDiv.appendChild(document.createElement('hr'));
             urlResultsDiv.appendChild(currResultLine);
         }
     }

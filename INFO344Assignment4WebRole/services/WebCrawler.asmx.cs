@@ -4,6 +4,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web.Script.Services;
 using System.Web.Services;
@@ -24,6 +25,8 @@ namespace INFO344Assignment4WebRole.services
         private static CrawlrStorageManager _storageManager
             = new CrawlrStorageManager(ConfigurationManager.AppSettings["StorageConnectionString"]);
         private static string _robotsTxtUrl;
+        private static Dictionary<string, List<string>> _cache = new Dictionary<string, List<string>>();
+        private static Queue<string> _lastHundredSearches = new Queue<string>();
 
         /// <summary>
         ///     Give the relevant command to the worker role to start crawling the given robots.txt
@@ -266,50 +269,76 @@ namespace INFO344Assignment4WebRole.services
         [WebMethod]
         public List<string> SearchForPageTitle(string userSearch)
         {
-            CloudTable urlTable = _storageManager.UrlTable;
-
-            List<TableQuery<IndexedUrl>> queriesToExecute = new List<TableQuery<IndexedUrl>>();
-            List<IndexedUrl> results = new List<IndexedUrl>();
-            List<string> ret = new List<string>();
-
-            string[] splitSearch = userSearch.Split(' ');
-            foreach (string s in splitSearch)
+            if (_cache.ContainsKey(userSearch))
             {
-                string word = s.ToLower();
-                word = Regex.Replace(word, "[^a-zA-Z0-9]", "");
+                return _cache[userSearch];
+            }
+            else
+            {
+                CloudTable urlTable = _storageManager.UrlTable;
 
-                if (word != "")
+                List<TableQuery<IndexedUrl>> queriesToExecute = new List<TableQuery<IndexedUrl>>();
+                List<IndexedUrl> results = new List<IndexedUrl>();
+                Dictionary<string, string> titlesToDate = new Dictionary<string, string>();
+                List<string> returnList = new List<string>();
+
+                string[] splitSearch = userSearch.Split(' ');
+                foreach (string s in splitSearch)
                 {
-                    TableQuery<IndexedUrl> urlTitleQuery = new TableQuery<IndexedUrl>()
-                    .Where(
-                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, word)
-                    );
+                    string word = s.ToLower();
+                    word = Regex.Replace(word, "[^a-zA-Z0-9]", "");
 
-                    queriesToExecute.Add(urlTitleQuery);
+                    if (word != "")
+                    {
+                        TableQuery<IndexedUrl> urlTitleQuery = new TableQuery<IndexedUrl>()
+                        .Where(
+                            TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, word)
+                        );
+
+                        queriesToExecute.Add(urlTitleQuery);
+                    }
                 }
-            }
 
-            foreach (var q in queriesToExecute)
-            {
-                var executedQuery = urlTable.ExecuteQuery(q);
-                foreach (IndexedUrl url in executedQuery)
+
+                foreach (var q in queriesToExecute)
                 {
-                    results.Add(url);
+                    var executedQuery = urlTable.ExecuteQuery(q);
+                    foreach (IndexedUrl url in executedQuery)
+                    {
+                        results.Add(url);
+                        titlesToDate[url.PageTitle] = url.Date + "|||" + url.Url;
+                    }
                 }
-            }
 
-            foreach (var x in results)
-            {
-                ret.Add(x.PageTitle + "|" + x.Date + "|" + x.Url);
-            }
+                var sortedResults = results.GroupBy(x => x.PageTitle)
+                    .Select(x => new Tuple<string, int>(x.Key, x.ToList().Count))
+                    .OrderByDescending(x => x.Item2)
+                    .Take(30);
 
-            return ret;
+                foreach (var result in sortedResults)
+                {
+                    returnList.Add(result.Item1 + "|||" + titlesToDate[result.Item1]);
+                }
+
+                if (_cache.Count >= 100)
+                {
+                    string targetKey = _lastHundredSearches.Dequeue();
+                    _cache.Remove(targetKey);
+                }
+                if (returnList.Count > 0)
+                {
+                    _lastHundredSearches.Enqueue(userSearch);
+                    _cache.Add(userSearch, returnList);
+                }
+
+                return returnList;
+            }
         }
 
         private void InitializeCrawlrComponents()
         {
-            _storageManager
-                    = new CrawlrStorageManager(ConfigurationManager.AppSettings["StorageConnectionString"]);
+            _storageManager 
+                = new CrawlrStorageManager(ConfigurationManager.AppSettings["StorageConnectionString"]);
         }
     }
 }

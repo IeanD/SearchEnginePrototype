@@ -8,13 +8,9 @@
     box-shadow: none;
 }
 
-#titleSuggestions {
-    border: 1px solid #A5ACB2;
-    /*position: absolute;*/
-    margin-top: -17px;
-    margin-left: 94px;
-    margin-right: 40px;
-    display: none;
+.container.body-wrapper {
+    background-color: transparent;
+    box-shadow: none;
 }
 
 .header {
@@ -22,7 +18,7 @@
     text-align: center;
 }
 
-.container {
+.container-fluid {
     background-color: white;
     border-radius: 5px;
     box-shadow: 2px 5px 8px #888888;
@@ -64,11 +60,29 @@
     color: lightgray;
 }
 
-#results > div > p {
+#nbaResults > div > p {
     padding-top: 5px;
     padding-bottom: 5px;
 }
 
-#results > div > table > tbody > tr > td {
+#nbaResults > div > table > tbody > tr > td {
     max-width: 70px;
+}
+
+#urlResults {
+    padding-left: 15px;
+}
+
+#urlResultsWrapper {
+    margin-top: 15px;
+}
+
+#titleSuggestions {
+    background-color: white;
+    border: 1px solid #A5ACB2;
+    /*position: absolute;*/
+    margin-top: -17px;
+    margin-left: 94px;
+    margin-right: 40px;
+    display: none;
 }

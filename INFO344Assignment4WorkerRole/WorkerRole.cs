@@ -93,41 +93,41 @@ namespace INFO344Assignment4WorkerRole
                 // Do work if current cmd is still "start"
                 if (_storageManager.GetCurrentCmd() == "START")
                 {
-                    // Process all XMLs (sitemaps) found
-                    //string nextXml = "";
-                    //try
-                    //{
-                    //    while (_crawlrData.NumXmlsQueued > 0 && _storageManager.GetCurrentCmd() == "START")
-                    //    {
-                    //        //CloudQueueMessage nextXmlMsg = _storageManager.XmlQueue.GetMessage();
-                    //        nextXml = _crawlrData.XmlQueue.Dequeue();
-                    //        _crawlrData.NumXmlsQueued--;
+                    //Process all XMLs(sitemaps) found
+                    string nextXml = "";
+                    try
+                    {
+                        while (_crawlrData.NumXmlsQueued > 0 && _storageManager.GetCurrentCmd() == "START")
+                        {
+                            //CloudQueueMessage nextXmlMsg = _storageManager.XmlQueue.GetMessage();
+                            nextXml = _crawlrData.XmlQueue.Dequeue();
+                            _crawlrData.NumXmlsQueued--;
 
-                    //        XmlCrawlr.CrawlXml(ref _crawlrData, ref _storageManager, nextXml);
+                            XmlCrawlr.CrawlXml(ref _crawlrData, ref _storageManager, nextXml);
 
-                    //        //_storageManager.XmlQueue.DeleteMessage(nextXmlMsg);
+                            //_storageManager.XmlQueue.DeleteMessage(nextXmlMsg);
 
-                    //        // Update worker role status
-                    //        _statusManager.UpdateCrawlrStatus(
-                    //            "Loading",
-                    //            _crawlrData,
-                    //            _storageManager
-                    //        );
-                    //        _statusManager.UpdateQueueSize(_storageManager, _crawlrData.NumXmlsQueued, _crawlrData.NumUrlsQueued);
+                            // Update worker role status
+                            _statusManager.UpdateCrawlrStatus(
+                                "Loading",
+                                _crawlrData,
+                                _storageManager
+                            );
+                            _statusManager.UpdateQueueSize(_storageManager, _crawlrData.NumXmlsQueued, _crawlrData.NumUrlsQueued);
 
-                    //        Thread.Sleep(50);
-                    //    }
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    try
-                    //    {
-                    //        ErrorEntity errorUrl = new ErrorEntity(nextXml, ex.ToString());
-                    //        TableOperation insertErrorUrl = TableOperation.InsertOrReplace(errorUrl);
-                    //        _storageManager.ErrorTable.Execute(insertErrorUrl);
-                    //    }
-                    //    catch (Exception) { }
-                    //}
+                            Thread.Sleep(50);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        try
+                        {
+                            ErrorEntity errorUrl = new ErrorEntity(nextXml, ex.ToString());
+                            TableOperation insertErrorUrl = TableOperation.InsertOrReplace(errorUrl);
+                            _storageManager.ErrorTable.Execute(insertErrorUrl);
+                        }
+                        catch (Exception) { }
+                    }
 
                     // Process all URLs in queue
                     string nextUrl = "";
@@ -174,6 +174,8 @@ namespace INFO344Assignment4WorkerRole
                         _storageManager
                     );
                     _statusManager.UpdateQueueSize(_storageManager, 0, 0);
+                    _storageManager.UrlQueue.Clear();
+                    _storageManager.XmlQueue.Clear();
                     // Give Azure time to delete tables.
                     Thread.Sleep(20000);
 
