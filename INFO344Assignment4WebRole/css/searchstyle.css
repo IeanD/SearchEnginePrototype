@@ -1,5 +1,11 @@
-﻿.container.search-container {
+﻿body {
+    background-color: #82fff7 !important;
+}
+
+.container.search-container {
     margin-top: 30px;
+    background-color: #82fff7 !important;
+    box-shadow: none;
 }
 
 #titleSuggestions {
@@ -14,4 +20,55 @@
 .header {
     padding: 20px 0;
     text-align: center;
+}
+
+.container {
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 2px 5px 8px #888888;
+}
+
+.container.debug-container {
+    background-color: lightblue;
+}
+
+.container.player-container {
+    background-color: lightblue;
+    border-radius: 0px;
+    box-shadow: 1px 1px 4px #888888;
+    margin-top: 5px;
+    margin-bottom: 20px;
+}
+
+.input-group-text.search-label {
+    border-color: lightblue;
+    background-color: lightblue;
+}
+
+.nba-img {
+    max-height: 100px;
+}
+
+.player-img {
+    display: inline-block;
+}
+
+.player-name {
+    display: inline;
+}
+
+.url-date {
+    font-size: .75em;
+    padding-left: 5px;
+    font-style: italic;
+    color: lightgray;
+}
+
+#results > div > p {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#results > div > table > tbody > tr > td {
+    max-width: 70px;
 }

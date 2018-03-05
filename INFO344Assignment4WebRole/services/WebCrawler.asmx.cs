@@ -300,7 +300,7 @@ namespace INFO344Assignment4WebRole.services
 
             foreach (var x in results)
             {
-                ret.Add(x.PageTitle);
+                ret.Add(x.PageTitle + "|" + x.Date + "|" + x.Url);
             }
 
             return ret;

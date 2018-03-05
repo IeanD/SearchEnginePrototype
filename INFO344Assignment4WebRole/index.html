@@ -5,10 +5,10 @@
 <head>
     <meta charset="utf-8">
 
-    <title>Wikipedia Title Search</title>
+    <title>webCrawlr Search | A CNN &Aacute; Basketball Search Engine.</title>
 
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="description" content="A searchable database of wikipedia page titles.">
+    <meta name="description" content="A search engine for CNN, Bleacher Report basketball, & NBA Player Stats.">
     <meta name="author" content="Iean Drew">
 
     <link rel="stylesheet" href="css/searchstyle.css">
@@ -24,13 +24,13 @@
 
 <body>
     <div class="container search-container">
-        <h1 class="header">webCrawlr</h1>
+        <h1 class="header">webCrawlr Search</h1>
         <form id="searchForm">
             <div class="input-group mb-3" id="searchDiv">
                 <div class="input-group-prepend">
                     <span class="input-group-text search-label">Page title:</span>
                 </div>
-                <input type="text" class="form-control" id="titleSearch" aria-label="" placeholder="e.g. &quot;beethoven&quot;">
+                <input type="text" class="form-control" id="titleSearch" aria-label="" autocomplete="off" e.g. &quot;lebron james&quot; or &quot;us senate&quot;">
                 <div class="input-group-append">
                     <button type="submit"
                             class="btn btn-outline-secondary"
@@ -41,6 +41,26 @@
             </div>
             <div id="titleSuggestions"></div>
         </form>
+    </div>
+
+    <div id="nbaResultsWrapper" style="display: none">
+        <div class="[ container ]">
+            <br />
+            <h2 class="text-center"><strong>NBA 2015-16 RESULTS</strong></h2>
+            <br />
+            <div id="nbaResults"></div>
+            <br />
+        </div>
+    </div>
+
+    <div id="urlResultsWrapper" style="display: none">
+        <div class="[ container ]">
+            <br />
+            <h2 class="text-center"><strong>SEARCH RESULTS</strong></h2>
+            <br />
+            <div id="urlResults"></div>
+            <br />
+        </div>
     </div>
 
     <div id='newScripts' style='display:none'></div>

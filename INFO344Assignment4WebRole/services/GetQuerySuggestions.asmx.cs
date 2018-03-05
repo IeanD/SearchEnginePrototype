@@ -26,6 +26,7 @@ namespace INFO344Assignment4WebRole.services
         private static string _filePath;
         private static int _numTitlesAddedToTrie = 0;
         private static string _lastTitleAddedToTrie = "";
+        private static bool _trieIsBuilding = false;
 
         /// <summary>
         ///     Queries the VM for amount of available RAM in MB.
@@ -91,6 +92,7 @@ namespace INFO344Assignment4WebRole.services
         [WebMethod]
         public string BuildTrie()
         {
+            _trieIsBuilding = true;
             if (_filePath == null)
             {
                 DownloadWikiTitles();
@@ -119,6 +121,8 @@ namespace INFO344Assignment4WebRole.services
                                 line,
                                 perf.NextValue());
 
+            _trieIsBuilding = false;
+
             return output;
         }
 
@@ -137,12 +141,19 @@ namespace INFO344Assignment4WebRole.services
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public List<string> SearchTrie(string search)
         {
-            if (_titlesTrie == null)
+            if (_titlesTrie == null && !_trieIsBuilding)
             {
                 BuildTrie();
             }
 
-            return _titlesTrie.SearchForWord(search);
+            if (!_trieIsBuilding)
+            {
+                return _titlesTrie.SearchForWord(search);
+            }
+            else
+            {
+                return new List<string>();
+            }
         }
     }
 }

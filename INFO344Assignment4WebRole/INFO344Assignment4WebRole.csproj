@@ -103,6 +103,7 @@
     <Content Include="crawlr_dashboard.html" />
     <Content Include="css\dashboardstyle.css" />
     <Content Include="css\searchstyle.css" />
+    <Content Include="default.png" />
     <Content Include="index.html" />
     <Content Include="js\dashboardwork.js" />
     <Content Include="js\searchwork.js" />
