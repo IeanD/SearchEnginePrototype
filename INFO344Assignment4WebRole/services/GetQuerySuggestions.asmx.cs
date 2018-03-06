@@ -56,23 +56,26 @@ namespace INFO344Assignment4WebRole.services
         {
             string result = "Download failed.";
 
-            _filePath = Path.GetTempFileName();
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
-                ConfigurationManager.AppSettings["StorageConnectionString"]);
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference("igd");
-
-            if (container.Exists())
+            if (_filePath == null)
             {
-                foreach (IListBlobItem item in container.ListBlobs(null, false))
-                {
-                    if (item.GetType() == typeof(CloudBlockBlob))
-                    {
-                        CloudBlockBlob blob = (CloudBlockBlob)item;
-                        CloudBlockBlob blobDl = container.GetBlockBlobReference("WikiTitles");
+                _filePath = Path.GetTempFileName();
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
+                    ConfigurationManager.AppSettings["StorageConnectionString"]);
+                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+                CloudBlobContainer container = blobClient.GetContainerReference("igd");
 
-                        blobDl.DownloadToFile(_filePath, FileMode.Create);
-                        result = "Download succeeded!";
+                if (container.Exists())
+                {
+                    foreach (IListBlobItem item in container.ListBlobs(null, false))
+                    {
+                        if (item.GetType() == typeof(CloudBlockBlob))
+                        {
+                            CloudBlockBlob blob = (CloudBlockBlob)item;
+                            CloudBlockBlob blobDl = container.GetBlockBlobReference("WikiTitles");
+
+                            blobDl.DownloadToFile(_filePath, FileMode.Create);
+                            result = "Download succeeded!";
+                        }
                     }
                 }
             }
@@ -116,9 +119,11 @@ namespace INFO344Assignment4WebRole.services
                 _titlesTrie.AddWord(line.ToLower());
                 counter++;
                 _numTitlesAddedToTrie = counter;
+                _titlesTrie.NumStringsAdded = counter;
                 if (line != null && line != "" && line != " ")
                 {
                     _lastTitleAddedToTrie = line;
+                    _titlesTrie.LastStringAdded = line;
                 }
             }
             string output = String.Format("{0} titles were added. The last title added was {1}. The amount of free RAM is {2}MBytes.",
@@ -174,8 +179,8 @@ namespace INFO344Assignment4WebRole.services
         {
             List<string> results = new List<string>
             {
-                _numTitlesAddedToTrie.ToString(),
-                _lastTitleAddedToTrie
+                _titlesTrie.NumStringsAdded.ToString(),
+                _titlesTrie.LastStringAdded
             };
 
             return results;

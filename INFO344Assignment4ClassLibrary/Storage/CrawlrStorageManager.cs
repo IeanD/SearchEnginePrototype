@@ -39,27 +39,27 @@ namespace INFO344Assignment4ClassLibrary.Storage
                 .Take(1);
 
             this._cmdTable = new AzureTable(
-                _connectionString, "devcrawlrcmdtable")
+                _connectionString, "prodcrawlrcmdtable")
                 .GetTable();
 
             this.XmlQueue = new AzureQueue(
-                _connectionString, "devcrawlrxmlqueue")
+                _connectionString, "prodcrawlrxmlqueue")
                 .GetQueue();
 
             this.UrlQueue = new AzureQueue(
-                _connectionString, "devcrawlrurlqueue")
+                _connectionString, "prodcrawlrurlqueue")
                 .GetQueue();
 
             this.ErrorTable = new AzureTable(
-                _connectionString, "devcrawlrerrortable")
+                _connectionString, "prodcrawlrerrortable")
                 .GetTable();
 
             this.UrlTable = new AzureTable(
-                _connectionString, "testcrawlrurltable")
+                _connectionString, "prodcrawlrurltable")
                 .GetTable();
 
             this.StatusTable = new AzureTable(
-                _connectionString, "devcrawlrstatustable")
+                _connectionString, "prodcrawlrstatustable")
                 .GetTable();
         }
 

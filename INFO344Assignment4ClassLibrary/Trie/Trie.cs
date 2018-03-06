@@ -11,6 +11,8 @@ namespace INFO344Assignment4ClassLibrary.Trie
     /// </summary>
     public class Trie
     {
+        public string LastStringAdded { get; set; }
+        public int NumStringsAdded { get; set; }
         private TrieNode _root { get; }
         private static int MAX_LIST_SIZE = 100;
         private static int MAX_NUM_RESULTS = 10;

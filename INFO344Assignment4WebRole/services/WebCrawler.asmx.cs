@@ -180,7 +180,8 @@ namespace INFO344Assignment4WebRole.services
 
                 return result;
             }
-            catch (Exception) {
+            catch (Exception)
+            {
                 List<int> Catch = new List<int>();
                 Catch.Add(0);
                 Catch.Add(0);
@@ -279,7 +280,6 @@ namespace INFO344Assignment4WebRole.services
 
                 List<TableQuery<IndexedUrl>> queriesToExecute = new List<TableQuery<IndexedUrl>>();
                 List<IndexedUrl> results = new List<IndexedUrl>();
-                Dictionary<string, string> titlesToDate = new Dictionary<string, string>();
                 List<string> returnList = new List<string>();
 
                 string[] splitSearch = userSearch.Split(' ');
@@ -306,18 +306,18 @@ namespace INFO344Assignment4WebRole.services
                     foreach (IndexedUrl url in executedQuery)
                     {
                         results.Add(url);
-                        titlesToDate[url.PageTitle] = url.Date + "|||" + url.Url;
                     }
                 }
 
-                var sortedResults = results.GroupBy(x => x.PageTitle)
-                    .Select(x => new Tuple<string, int>(x.Key, x.ToList().Count))
+                var sortedResults = results.GroupBy(x => x.Url)
+                    .Select(x => new Tuple<IndexedUrl, int>(x.ToList().First(), x.ToList().Count))
                     .OrderByDescending(x => x.Item2)
+                    .ThenByDescending(x => HandleDate(x.Item1.Date))
                     .Take(30);
 
                 foreach (var result in sortedResults)
                 {
-                    returnList.Add(result.Item1 + "|||" + titlesToDate[result.Item1]);
+                    returnList.Add(result.Item1.PageTitle + "|||" + result.Item1.Date + "|||" + result.Item1.Url);
                 }
 
                 if (_cache.Count >= 100)
@@ -337,8 +337,20 @@ namespace INFO344Assignment4WebRole.services
 
         private void InitializeCrawlrComponents()
         {
-            _storageManager 
+            _storageManager
                 = new CrawlrStorageManager(ConfigurationManager.AppSettings["StorageConnectionString"]);
+        }
+
+        private DateTime HandleDate (string date)
+        {
+            if(date == "NULL")
+            {
+                return new DateTime(1992, 3, 22);
+            }
+            else
+            {
+                return DateTime.Parse(date);
+            }
         }
     }
 }
