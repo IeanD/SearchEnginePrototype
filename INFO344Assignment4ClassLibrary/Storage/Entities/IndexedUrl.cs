@@ -3,6 +3,10 @@ using System;
 
 namespace INFO344Assignment4ClassLibrary.Storage.Entities
 {
+    /// <summary>
+    ///     Entity for tracking information about a crawled URL to be searched via a reverse index. Tracks
+    ///     a URL's Page Title, publish date (if any), absolute URL and an associated word (from the page title).
+    /// </summary>
     public class IndexedUrl : TableEntity
     {
         public string Word { get; set; }

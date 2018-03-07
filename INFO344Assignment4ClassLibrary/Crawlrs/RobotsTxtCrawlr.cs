@@ -8,7 +8,7 @@ namespace INFO344Assignment4ClassLibrary.Crawlrs
 {
     /// <summary>
     ///     Helper class for crawling a robots.txt URL.
-    ///     This class will load a robots.txt from a given URL, place all relevant sitemaps into queue,
+    ///     This class will load a robots.txt from a given URL, place all relevant sitemaps into a queue,
     ///     and build a list of disallowed strings.
     /// </summary>
     public class RobotsTxtCrawlr
@@ -64,8 +64,6 @@ namespace INFO344Assignment4ClassLibrary.Crawlrs
                     {
                         sitemaps.Add(splitLine[1]);
                         data.QueuedXmls.Add(splitLine[1]);
-                        //CloudQueueMessage msg = new CloudQueueMessage(splitLine[1]);
-                        //storage.XmlQueue.AddMessage(msg);
                         data.XmlQueue.Enqueue(splitLine[1]);
                         data.NumXmlsQueued++;
 

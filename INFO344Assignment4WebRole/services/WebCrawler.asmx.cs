@@ -257,19 +257,25 @@ namespace INFO344Assignment4WebRole.services
         }
 
         /// <summary>
-        ///     Check azure storage to see if a given URL has been crawled. If so, returns
-        ///     the given URLs page title.
+        ///     Check azure storage against a given search query and returns a list of URLs with page titles
+        ///     matching part of or the full search query.
         /// </summary>
-        /// <param name="url">
-        ///     absolute URL of page, as string.
+        /// <param name="userSearch">
+        ///     The user's search query.
         /// </param>
         /// <returns>
-        ///     List<string> containing the page title matching the given URL, if found.
+        ///     List<string> of results. Formatted as "{PageTitle}|||{Date}|||{URL}"
         /// </returns>
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         [WebMethod]
         public List<string> SearchForPageTitle(string userSearch)
         {
+            userSearch = userSearch.Trim();
+            while(userSearch.Contains("  "))
+            {
+                userSearch = userSearch.Replace("  ", " ");
+            }
+
             if (_cache.ContainsKey(userSearch))
             {
                 return _cache[userSearch];

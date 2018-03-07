@@ -11,16 +11,16 @@ namespace INFO344Assignment4ClassLibrary.Crawlrs
 {
     /// <summary>
     ///     Helper class for webCrawlr.
-    ///     This class can crawl a given XML (sitemap), placing all found XMLs/URLs into queue
-    ///     while doing its best to check against date and filter out XMLs/URLs older than two months
-    ///     (62 days).
+    ///     This class can crawl a given XML (sitemap), placing all found XMLs/URLs into a queue
+    ///     while doing its best to check against date and filter out XMLs/URLs older than 1 January
+    ///     2018.
     /// </summary>
     public class XmlCrawlr
     {
         /// <summary>
         ///     Crawls a given XML document (sitemap) by URI, checking each found URI's date if possible
         ///     and filtering out links disallowed or older than 2 months. Places found and valid XMLs/URLs
-        ///     into relevant azure queue for processing.
+        ///     into a relevant queue for crawling.
         /// </summary>
         /// <param name="data">
         ///     Crawler data helper. Ref.
@@ -105,8 +105,6 @@ namespace INFO344Assignment4ClassLibrary.Crawlrs
 
                     foreach (string newXml in xmlsToQueue)
                     {
-                        //CloudQueueMessage msg = new CloudQueueMessage(newXml);
-                        //storage.XmlQueue.AddMessage(msg);
                         data.QueuedXmls.Add(newXml);
                         data.NumXmlsQueued++;
                         data.XmlQueue.Enqueue(newXml);
