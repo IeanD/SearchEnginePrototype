@@ -14,7 +14,7 @@ namespace INFO344Assignment4WebRole.services
     /// <summary>
     ///     ASMX Script Service for webCrawlr, a URL crawler tailored towards crawling cnn.com.
     /// </summary>
-    [WebService(Namespace = "http://ieandrewcrawlr.cloudapp.net/")]
+    [WebService(Namespace = "http://igdcrawlr.cloudapp.net/")]
     [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
     [System.ComponentModel.ToolboxItem(false)]
     // To allow this Web Service to be called from script, using ASP.NET AJAX, uncomment the following line. 

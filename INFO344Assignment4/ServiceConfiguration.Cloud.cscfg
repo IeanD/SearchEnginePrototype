@@ -3,13 +3,13 @@
   <Role name="INFO344Assignment4WebRole">
     <Instances count="1" />
     <ConfigurationSettings>
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=info344storageaccount;AccountKey=$(_info344storageaccount.key_)" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=crawlr;AccountKey=qerfOz3zIC/JpigpCAxViomNf6Jm6L7G0mCjCdbNh/ZlSS0eL/h0Fne/bF1vaY6GtV1+BBaWAeA4kJhS6j5l4g==" />
     </ConfigurationSettings>
   </Role>
   <Role name="INFO344Assignment4WorkerRole">
     <Instances count="1" />
     <ConfigurationSettings>
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=info344storageaccount;AccountKey=$(_info344storageaccount.key_)" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=crawlr;AccountKey=qerfOz3zIC/JpigpCAxViomNf6Jm6L7G0mCjCdbNh/ZlSS0eL/h0Fne/bF1vaY6GtV1+BBaWAeA4kJhS6j5l4g==" />
     </ConfigurationSettings>
   </Role>
 </ServiceConfiguration>

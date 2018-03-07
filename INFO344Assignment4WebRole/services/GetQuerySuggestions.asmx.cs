@@ -16,7 +16,7 @@ namespace INFO344Assignment4WebRole.services
     /// 
     ///     by Iean Drew.
     /// </summary>
-    [WebService(Namespace = "http://ieandrewcrawlr.cloudapp.net/")]
+    [WebService(Namespace = "http://igdcrawlr.cloudapp.net/")]
     [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
     [System.ComponentModel.ToolboxItem(false)]
     [ScriptService]
